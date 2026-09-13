@@ -1,31 +1,54 @@
 class Solution:
     def validTree(self, n: int, edges: List[List[int]]) -> bool:
-        if not edges:
+        if not edges: # for block can't address not edges properly 
             if n == 1:
                 return True
-            return False
+            else:
+                return False
 
-        # undirected Tree should consider as GROUP not ROOT
+        def findGroup(parent):
+            if parent not in group:
+                # never use None/0 1️⃣
+                return -1
 
-        vertexGroup = {}
+            curr = parent
+            updateStack = []
+            # while group[parent] != -1: 0️⃣
+            while   group[parent] != parent:
+                updateStack.append(parent)
+                parent = group[parent]
+
+            for vertex in updateStack:
+                group[vertex] = parent
+                
+            return group[curr]
+
+        # parent = GROUP
+        group = {}
+        groupNum = 0
 
         for v1, v2 in edges:
-            g1 = vertexGroup.get(v1, None)
-            g2 = vertexGroup.get(v2, None)
-            if not g1 and not g2:
-                groupID = 1 # Tree should only have 1 group
-                vertexGroup[v1] = groupID
-                vertexGroup[v2] = groupID
-            elif not g1:
-                vertexGroup[v1] = vertexGroup[v2]
-            elif not g2:
-                vertexGroup[v2] = vertexGroup[v1]
-            else: # default がなければ未知な条件網羅できないから
-                if vertexGroup[v1] == vertexGroup[v2]:
-                    return False
+            g1 = findGroup(v1)
+            g2 = findGroup(v2)
+            if g1 == -1 and g2 == -1: # 1️⃣ None/0 NG
+                groupNum += 1
+                # group[v1] = -1 0️⃣
+                group[v1] = v1
+                group[v2] = v1
+            elif g1 == -1:
+                #         = v2
+                group[v1] = g2
+            elif g2 == -1:
+                #         = v1
+                group[v2] = g1
+            else:
+                if g1 == g2:
+                    return False # no circle
+                else:
+                    groupNum -= 1
+                    group[g2] = g1
 
-        print(vertexGroup)
-        if n == len(vertexGroup):
+        if groupNum == 1 and len(group) == n:
             return True
 
         return False
