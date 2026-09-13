@@ -1,53 +1,58 @@
 class Solution:
     def validTree(self, n: int, edges: List[List[int]]) -> bool:
-        adjacentList = {}
-        for r, adj in edges:
-            if r not in adjacentList:
-                adjacentList[r] =   {'root': -1, 'adjacent': []}
-            adjacentList[r]['adjacent'].append(adj)
+        def findGroup(parent):
+            if parent not in group:
+                # I'll never use None/0 1️⃣
+                return -1
 
-            if adj not in adjacentList:
-                adjacentList[adj] = {'root': -1, 'adjacent': []}
-            adjacentList[adj]['root'] = r
+            curr = parent
 
-        def findRoot(adjacentList):
-            root = -1 # don't use None because '0'
-            for parent in adjacentList:
-                #　クソ　None / 0
-                if adjacentList[parent]['root'] == -1:
-                    print(adjacentList[parent])
-                    print(f'rootshouldbe={root}')
-                    if root == -1:
-                        root = parent
-                    else:
-                        # tree only one root
-                        return -1
+            updateStack = []
+            # while group[parent] != -1: 0️⃣
+            while   group[parent] != parent:
+                updateStack.append(parent)
+                parent = group[parent]
 
-            return root
+            for vertex in updateStack:
+                group[vertex] = parent
+                
+            return group[curr]
 
-        print(adjacentList)
-        print()
-        print()
-        root = findRoot(adjacentList)
-        if root == -1:
-            print('no root')
-            return False
+        # parent = GROUP
+        group = {}
+        groupNum = 0
 
-        def dfs(root):
-            visited = set()
+        for v1, v2 in edges:
+            print ()
+            print(group)
+            print((v1, v2))
+            g1 = findGroup(v1)
+            g2 = findGroup(v2)
+            print((g1, g2))
+            if g1 == -1 and g2 == -1: # 1️⃣ None/0 NG
+                print("nn")
+                groupNum += 1
+                # group[v1] = -1 0️⃣
+                group[v1] = v1
+                group[v2] = v1
+            elif g1 == -1:
+                print("n1")
+                #         = v2
+                group[v1] = g2
+            elif g2 == -1:
+                print("n2")
+                #         = v1
+                group[v2] = g1
+            else:
+                print("yy")
+                if g1 == g2:
+                    return False # no circle
+                else:
+                    groupNum -= 1
+                    group[g2] = g1
+            print(groupNum)
 
-            stack = [root]
-            while stack:
-                parent = stack.pop()
-                if parent in visited:
-                    # a circle
-                    return False
-                visited.add(parent)
-
-                for child in adjacentList[parent]['adjacent']:
-                    stack.append(child)
-
-            # no multiple root and no circle
+        if groupNum == 1 and len(group) == n:
             return True
             
-        return dfs(root)
+        return False
